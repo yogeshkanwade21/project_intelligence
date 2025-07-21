@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import './App.css'
+import { handleUserQuery } from './api/service';
 
 function App() {
   const [prompt, setPrompt] = useState('');
 
-  const sendPrompt = () => {
-    fetch('http://localhost:8000/health', {
-      
-    })
+  const sendPrompt = async () => {
+    try {
+      const response = await handleUserQuery(prompt);
+      console.log('response', response)
+    } catch (error) {
+      console.log('error', error)
+    }
   }
 
   return (

@@ -14,6 +14,10 @@ app.add_middleware(
 
 app.include_router(jira.router)
 
+@app.post("/query/handle")
+async def analyze_query(payload: dict):
+    return {"received_query": payload["query"]}
+
 @app.get("/health")
-def read_root():
+def health_check():
     return {"message": "FastAPI backend is running"}
