@@ -8,3 +8,16 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/app:/app/app
+    depends_on:
+      - auth
+
+  auth:
+    build:
+      context: ./auth
+    env_file:
+      - ./auth/.env
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./auth:/app
+
