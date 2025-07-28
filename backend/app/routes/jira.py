@@ -3,7 +3,7 @@ import base64
 import os
 from fastapi import APIRouter
 from app.services.jira_service import search_issues
-from app.config import settings
+from config import settings
 
 router = APIRouter()
 
