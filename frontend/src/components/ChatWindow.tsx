@@ -16,6 +16,8 @@ const ChatWindow = () => {
   }
 
   const sendPrompt = async () => {
+    if (!prompt.trim()) return;
+
     setPrompt('');
     setMessages((messages) => [...messages, { id: Date.now().toString() + '_user', role: 'user', content: prompt }]);
     try {
@@ -29,7 +31,10 @@ const ChatWindow = () => {
     return (
     <>
       <h1 className='text-center mt-2'>Project Intelligence</h1>
-      <div className="flex flex-col min-h-[75vh] max-h-[75vh] overflow-y-scroll">
+      <div
+        data-testid='message-list'
+        className="flex flex-col min-h-[75vh] max-h-[75vh] overflow-y-scroll"
+      >
         {messages.map((message) => (
           <div key={message.id} className={`w-[100%] ${message.role === 'user' ? 'left-10' : 'right-0'}`}>
             <p>
@@ -42,6 +47,7 @@ const ChatWindow = () => {
         <div className='w-1/2'>
           <label htmlFor="input-prompt">
             <input
+              data-testid='chat-input'
               className='w-full'
               name='input-prompt'
               value={prompt}
@@ -52,7 +58,9 @@ const ChatWindow = () => {
         </div>
         
         <button
+          data-testid='send-button'
           onClick={sendPrompt}
+          disabled={prompt.trim() === ''}
         >
           Enter
         </button>
