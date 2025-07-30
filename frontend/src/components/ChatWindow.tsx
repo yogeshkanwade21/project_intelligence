@@ -33,13 +33,22 @@ const ChatWindow = () => {
       <h1 className='text-center mt-2'>Project Intelligence</h1>
       <div
         data-testid='message-list'
-        className="flex flex-col min-h-[75vh] max-h-[75vh] overflow-y-scroll"
+        className="flex flex-col min-h-[75vh] max-h-[75vh] overflow-y-scroll px-4"
       >
         {messages.map((message) => (
-          <div key={message.id} className={`w-[100%] ${message.role === 'user' ? 'left-10' : 'right-0'}`}>
-            <p>
-              {message.role}: {message.content}
-            </p>
+          <div
+            key={message.id}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
+          >
+            <div
+              className={`max-w-[70%] px-4 py-2 rounded-2xl ${
+                message.role === 'user'
+                  ? 'bg-blue-500 text-white rounded-br-none'
+                  : 'bg-gray-200 text-black rounded-bl-none'
+              }`}
+            >
+              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            </div>
           </div>
         ))}
       </div>
