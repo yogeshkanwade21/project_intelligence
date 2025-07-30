@@ -156,9 +156,18 @@ async def analyze_query(payload: dict):
 
     logger.info(f"Generated JQL: {jql}")
     try:
-        issues = await jira_service.search_issues(jql)
-        logger.info(f"Successfully fetched {len(issues.get('issues', []))} issues")
-        return issues
+        response = await jira_service.search_issues(jql)
+        response_data_for_frontend = []
+        logger.info(f"Successfully fetched {len(response.get('issues', []))} issues")
+        for issue in response.get('issues', []):
+            issue_key = issue.get('key', 'UnknownKey')
+            summary = issue.get('fields', {}).get('summary', 'No summary')
+            response_data_for_frontend.append({
+                'summary': summary,
+                'issue_key': issue_key,
+                'type': 'bug'
+            })
+        return response_data_for_frontend
     except Exception as e:
         logger.error(f"Error fetching issues from Jira: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
