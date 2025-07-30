@@ -7,7 +7,8 @@ def extract_intent(query: str):
     # Placeholder for intent extraction logic
     # In the future, this will use an NLP library to extract intent
     if "how many bugs" in query:
-        intent = {"type": "bug_count", "timespan": "7d"}
+        # intent = {"type": "bug_count", "timespan": "7d"}
+        intent = {"type": "bug_count"}
         logger.info(f"Extracted intent: {intent}")
         return intent
     
