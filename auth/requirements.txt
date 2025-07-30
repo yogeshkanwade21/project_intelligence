@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-dotenv
+python-jose
+requests
+Jinja2
+python-jose[cryptography]
+
+pymongo
+dnspython
