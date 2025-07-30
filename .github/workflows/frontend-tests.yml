@@ -3,10 +3,10 @@ name: Frontend Tests
 on:
   push:
     paths:
-      - 'Frontend/**'
+      - 'frontend/**'
   pull_request:
     paths:
-      - 'Frontend/**'
+      - 'frontend/**'
 
 jobs:
   test-frontend:
@@ -24,16 +24,16 @@ jobs:
       - name: Cache Node.js modules
         uses: actions/cache@v3
         with:
-          path: Frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('Frontend/package-lock.json') }}
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-        working-directory: Frontend
+        working-directory: frontend
 
       - name: Install frontend dependencies
-        working-directory: Frontend
+        working-directory: frontend
         run: npm install
 
       - name: Run frontend tests
-        working-directory: Frontend
+        working-directory: frontend
         run: npm run test
