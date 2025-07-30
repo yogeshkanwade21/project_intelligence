@@ -8,11 +8,11 @@ const LoginPage = () => {
   }
 
   return (
-    <div>
+    <div className="bg-gradient-to-tr from-pink-100 to-blue-100 h-screen flex flex-col justify-center items-center">
       <h1>
         Welcome Back
       </h1>
-      <button className="login-button" onClick={authenticateUser}>Log In</button>
+      <button className="login-button" onClick={authenticateUser}>Log In With Zoho</button>
     </div>
   )
 }
