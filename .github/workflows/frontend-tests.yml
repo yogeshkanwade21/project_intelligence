@@ -2,9 +2,11 @@ name: Frontend Tests
 
 on:
   push:
+    branches: [main]
     paths:
       - 'frontend/**'
   pull_request:
+    branches: [main]
     paths:
       - 'frontend/**'
 
@@ -28,7 +30,6 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-        working-directory: frontend
 
       - name: Install frontend dependencies
         working-directory: frontend
