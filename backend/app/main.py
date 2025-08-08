@@ -2,13 +2,16 @@ import logging
 from fastapi import FastAPI, HTTPException, status, Query, Request
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 import httpx
-# import requests
+import google.generativeai as genai
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser, PydanticOutputParser, JsonOutputParser
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import jira
 from app.orchestrator.intent_extractor import extract_intent
 from app.orchestrator.jql_generator import generate_jql
 from app.services import jira_service
-from config import settings
+from app.config import settings
 
 
 # Configure logging
@@ -30,10 +33,39 @@ app.add_middleware(
 
 app.include_router(jira.router)
 
+prompt2 = PromptTemplate(
+    template="You are a project assistant" \
+    "Extract the summary for each Jira object which is referenced as 'fields' -> 'summary' inside the object ."  \
+    "Extract the status for each Jira object which is referenced as 'fields' -> 'status' -> 'name' inside the object ."  \
+    "Extract the story point estimate for each Jira object which is referenced as 'fields' -> 'customfield_10016' inside the object ."  \
+    "I want you to provide insights about the project from this data JIRA API Response: {jira_api_response}."  \
+    "This is aimed at helping users understand the current state of the project and help them make informed decisions."  \
+    "You must only respond with your insights based on input data and nothing else. Do not give extracted Data." \
+    "Your output must not be more than 200 words.", \
+    input_variables=["jira_api_response"],
+)
+
+prompt1 = PromptTemplate(
+    template="You are a JIRA expert. Based on the following user query, generate a valid JQL string only." \
+    "User query: {user_query}" \
+    "Your output must be a valid string and nothing else.",
+    input_variables=["user_query"],
+)
+
+llm = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=settings.GOOGLE_GENERATIVE_AI_KEY,
+        temperature=0,
+        tool_choice="auto",
+    )
+
+# 1 query -> jql
+jql_chain = prompt1 | llm
+
+# 2 jira api -> insights
+chain = prompt2 | llm
+
 # Auth ----------------------
-# MAIN_BACKEND_ZOHO_CALLBACK_URI = "http://localhost:8000/oauth/callback"
-# FRONTEND_URL="http://localhost:5173"
-# LOGIN_MICROSERVICE_URL="http://auth:8001"
 
 @app.get("/login")
 async def login():
@@ -133,7 +165,6 @@ async def oauth_callback(code: str = None):
         return RedirectResponse(f"{settings.FRONTEND_URL}/chat?error=internal_server_error", status_code=status.HTTP_302_FOUND)
 
 
-
 @app.post("/query/handle")
 async def analyze_query(payload: dict):
     logger.info(f"Received payload: {payload}")
@@ -142,23 +173,40 @@ async def analyze_query(payload: dict):
         logger.error("Query not provided in payload")
         raise HTTPException(status_code=400, detail="Query not provided")
 
-    logger.info(f"Extracting intent from query: {query}")
-    intent = extract_intent(query)
-    if not intent:
-        logger.error(f"Could not extract intent from query: {query}")
-        raise HTTPException(status_code=400, detail="Could not understand the query")
+    jql_response = jql_chain.invoke({"user_query": query})
+    logger.info(f"jql_response: {jql_response}")
 
-    logger.info(f"Extracted intent: {intent}")
-    jql = generate_jql(intent)
-    if not jql:
-        logger.error(f"Could not generate JQL for intent: {intent}")
-        raise HTTPException(status_code=400, detail="Could not generate JQL for the given intent")
+    jql = jql_response.content
+    
+    # logger.info(f"Extracting intent from query: {query}")
+    # intent = extract_intent(query)
+    # if not intent:
+    #     logger.error(f"Could not extract intent from query: {query}")
+    #     raise HTTPException(status_code=400, detail="Could not understand the query")
+
+    # logger.info(f"Extracted intent: {intent}")
+    # jql = generate_jql(intent)
+    # if not jql:
+    #     logger.error(f"Could not generate JQL for intent: {intent}")
+    #     raise HTTPException(status_code=400, detail="Could not generate JQL for the given intent")
 
     logger.info(f"Generated JQL: {jql}")
     try:
         response = await jira_service.search_issues(jql)
+        formatted_issues = "\n".join(
+            f"- {i['key']}: {i['fields']['summary']} (Status: {i['fields']['status']['name']}) (Story Point Estimate: {i['fields']['customfield_10016']} ) (Status: {i['fields']['status']['name']})"
+            for i in response["issues"]
+        )
         response_data_for_frontend = []
-        logger.info(f"Successfully fetched {len(response.get('issues', []))} issues")
+        # logger.info(f"Successfully fetched {len(response.get('issues', []))} issues")
+        logger.info(f"Successfully fetched formatted_issues: {formatted_issues}")
+        # return formatted_issues
+        results = chain.invoke({"jira_api_response": response})
+        logger.info(f"results from llm: {results}")
+
+        # result = chain.invoke({"jira_api_response": formatted_issues})
+        # result = llm.invoke({"capital of india"})
+        return results.content
         for issue in response.get('issues', []):
             issue_key = issue.get('key', 'UnknownKey')
             summary = issue.get('fields', {}).get('summary', 'No summary')
