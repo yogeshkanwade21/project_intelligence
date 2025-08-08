@@ -22,7 +22,7 @@ const ChatWindow = () => {
     setMessages((messages) => [...messages, { id: Date.now().toString() + '_user', role: 'user', content: prompt }]);
     try {
       const response = await handleUserQuery(prompt);
-      setMessages((messages) => [...messages, { id: Date.now().toString() + '_assistant', role: 'assistant', content: response?.map((item: any) => <li>{item.summary}</li>) }]);
+      setMessages((messages) => [...messages, { id: Date.now().toString() + '_assistant', role: 'assistant', content: response }]);
       console.log('response', response)
     } catch (error) {
       console.log('error', error)
@@ -30,7 +30,7 @@ const ChatWindow = () => {
   }
     return (
     <>
-      <h1 className='text-center mt-2'>Project Intelligence</h1>
+      <h2 className='text-left ml-2'>Project Intelligence</h2>
       <div
         data-testid='message-list'
         className="flex flex-col min-h-[75vh] max-h-[75vh] overflow-y-scroll px-4"

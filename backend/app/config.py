@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     LOGIN_MICROSERVICE_URL: str
     MAIN_BACKEND_ZOHO_CALLBACK_URI: str
     FRONTEND_URL: str
+    GOOGLE_GENERATIVE_AI_KEY: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

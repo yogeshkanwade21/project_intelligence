@@ -7,7 +7,7 @@ ENV PYTHONPATH=/app
 
 # Copy and install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Copy rest of the app
 COPY . .

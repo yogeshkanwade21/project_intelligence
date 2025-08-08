@@ -1,12 +1,10 @@
 import logging
 import httpx
-from config import settings
-
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
 JIRA_API_BASE = f"{settings.jira_protocol}://{settings.jira_host}/rest/api/3"
-# JIRA_API_BASE = f"{Config.jira_protocol}://{Config.jira_host}/rest/api/3"
 
 def get_headers():
     return {
