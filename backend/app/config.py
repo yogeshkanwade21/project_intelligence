@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     MAIN_BACKEND_ZOHO_CALLBACK_URI: str
     FRONTEND_URL: str
     GOOGLE_GENERATIVE_AI_KEY: str
+    AZURE_ORGANIZATION: str
+    AZURE_PROJECT: str
+    AZURE_PAT: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

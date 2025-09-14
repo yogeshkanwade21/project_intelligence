@@ -1,5 +1,3 @@
-import React, { useEffect, useState } from 'react'
-
 const LoginPage = () => {
 
   const authenticateUser = async() => {
@@ -12,7 +10,7 @@ const LoginPage = () => {
       <h1>
         Welcome Back
       </h1>
-      <button className="login-button" onClick={authenticateUser}>Log In With Zoho</button>
+      <button className="login-button mt-4" onClick={authenticateUser}>Log In With Zoho</button>
     </div>
   )
 }

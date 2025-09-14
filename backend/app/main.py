@@ -11,6 +11,7 @@ from app.routes import jira
 from app.orchestrator.intent_extractor import extract_intent
 from app.orchestrator.jql_generator import generate_jql
 from app.services import jira_service
+from app.services import azure_service
 from app.config import settings
 
 
@@ -48,7 +49,7 @@ prompt2 = PromptTemplate(
 prompt1 = PromptTemplate(
     template="You are a JIRA expert. Based on the following user query, generate a valid JQL string only." \
     "User query: {user_query}" \
-    "Your output must be a valid string and nothing else.",
+    "Your output must be a valid string and nothing else. Do not give quotes or anything else. No ``. No ''. Only string.",
     input_variables=["user_query"],
 )
 
@@ -173,6 +174,13 @@ async def analyze_query(payload: dict):
         logger.error("Query not provided in payload")
         raise HTTPException(status_code=400, detail="Query not provided")
 
+    try:
+        azure_response = await azure_service.search_issues("query")
+        logger.info(f"azure_response: {azure_response}")
+    except Exception as e:
+        logger.error(f"Error searching Azure: {e}")
+        raise HTTPException(status_code=500, detail="Error searching Azure")
+    return azure_response
     jql_response = jql_chain.invoke({"user_query": query})
     logger.info(f"jql_response: {jql_response}")
 
@@ -193,6 +201,10 @@ async def analyze_query(payload: dict):
     logger.info(f"Generated JQL: {jql}")
     try:
         response = await jira_service.search_issues(jql)
+        # if response.status_code != 200:
+        #     logger.error(f"Error searching Jira: {response.status_code} - {response.text}")
+        #     raise HTTPException(status_code=500, detail="Error searching Jira")
+
         formatted_issues = "\n".join(
             f"- {i['key']}: {i['fields']['summary']} (Status: {i['fields']['status']['name']}) (Story Point Estimate: {i['fields']['customfield_10016']} ) (Status: {i['fields']['status']['name']})"
             for i in response["issues"]
